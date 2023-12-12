@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-validator-mc
+  labels:
+    name: model-validator-mc
+    app: model-validator-ml
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      name: model-validator-mc
+      app: model-validator-ml
+  template:
+    metadata:
+      name: model-validator-deployment
+      labels:
+        name: model-validator-mc
+        app: model-validator-ml
+    spec:
+      containers:
+      - name: model-validator-mc
+        image: hencor2019/brain_tumor_validator:dev
+        ports:
+        - containerPort: 8500
+        env:
+        - name: PORT
+          valueFrom:
+            secretKeyRef:
+              name: btf-model-validator-secret
+              key: port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-validator-service
+  labels:
+    name: model-validator-mc
+spec:
+  selector:
+    name: model-validator-mc
+    app: model-validator-ml
+  type: NodePort
+  ports:
+  - port: 8500
+    targetPort: 8500
+    nodePort: 30006
